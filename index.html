@@ -76,6 +76,14 @@ header { display: flex; align-items: center; gap: 14px; }
 header img { width: 52px; height: 52px; border-radius: 14px; box-shadow: var(--shadow); flex: none; }
 h1 { font-family: var(--font-display); font-weight: 400; font-size: 28px; line-height: 1.15; margin: 0; }
 .sub { color: var(--muted); margin: 2px 0 0; font-size: 13.5px; }
+header > div { flex: 1; min-width: 0; }
+.install {
+  flex: none; font: inherit; font-size: 14px; font-weight: 700; padding: 9px 14px; border: 0; border-radius: 999px;
+  background: var(--accent); color: var(--accent-ink); cursor: pointer; box-shadow: var(--shadow); white-space: nowrap;
+}
+.install-guide { background: var(--paper); border-radius: 16px; box-shadow: var(--shadow); padding: 16px 18px; display: flex; flex-direction: column; gap: 6px; }
+.install-guide p { margin: 0; font-size: 14px; color: var(--ink); line-height: 1.6; }
+.install-guide button { align-self: flex-end; font: inherit; font-size: 13px; padding: 5px 14px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; }
 
 .lock { background: var(--paper); border-radius: 18px; padding: 22px; display: flex; flex-direction: column; gap: 10px; box-shadow: var(--shadow); max-width: 380px; }
 .lock label { font-weight: 700; }
@@ -160,7 +168,14 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
       <h1>도전! 꿈나무</h1>
       <p class="sub">초등 2·3학년이 나갈 수 있는 외부 대회</p>
     </div>
+    <button type="button" class="install" id="install" hidden>앱 설치</button>
   </header>
+
+  <div class="install-guide" id="install-guide" hidden>
+    <strong>휴대폰에 앱으로 설치하기</strong>
+    <p id="guide-text"></p>
+    <button type="button" id="guide-close">닫기</button>
+  </div>
 
   <form class="lock" id="lock" autocomplete="off">
     <label for="pin">비밀번호를 넣어 주세요</label>
@@ -369,6 +384,35 @@ lockEl.addEventListener("submit", function (e) { e.preventDefault(); if (pinEl.v
 var saved = null; try { saved = localStorage.getItem(KEY); } catch (e) {}
 if (saved) tryOpen(saved, false); else pinEl.focus();
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () {});
+
+// 앱 설치: 안드로이드 크롬·삼성 인터넷은 설치 창을 바로 띄우고, 아이폰은 방법을 안내한다. 이미 앱으로 열었으면 버튼을 숨긴다.
+(function () {
+  var btn = document.getElementById("install"), guide = document.getElementById("install-guide"), text = document.getElementById("guide-text");
+  var standalone = (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
+  if (standalone) return;
+  var ua = navigator.userAgent, isIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  var isInApp = /KAKAOTALK|NAVER|Instagram|FBAN|FBAV|Line\//i.test(ua);
+  var deferred = null;
+  function showGuide(msg) { text.textContent = msg; guide.hidden = false; }
+  window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault(); deferred = e; btn.hidden = false; });
+  window.addEventListener("appinstalled", function () { btn.hidden = true; guide.hidden = true; deferred = null; });
+  btn.addEventListener("click", function () {
+    if (deferred) {
+      deferred.prompt();
+      deferred.userChoice.then(function (r) { if (r.outcome === "accepted") btn.hidden = true; deferred = null; });
+    } else if (isInApp) {
+      showGuide("카카오톡·네이버 앱 안에서는 설치할 수 없어요. 오른쪽 위(또는 아래) 메뉴에서 '다른 브라우저로 열기'를 눌러 크롬이나 사파리로 연 뒤 다시 '앱 설치'를 눌러 주세요.");
+    } else if (isIOS) {
+      showGuide("사파리 아래쪽 가운데 공유 버튼(네모에서 화살표가 위로 나온 모양)을 누르고, 목록에서 '홈 화면에 추가'를 누른 뒤 오른쪽 위 '추가'를 누르세요.");
+    } else {
+      showGuide("브라우저 메뉴(⋮ 또는 ≡)에서 '앱 설치' 또는 '홈 화면에 추가'를 눌러 주세요. 크롬이나 삼성 인터넷에서 가장 잘 돼요.");
+    }
+  });
+  document.getElementById("guide-close").addEventListener("click", function () { guide.hidden = true; });
+  // 설치 창을 띄울 수 없는 브라우저(아이폰, 카카오톡 안 등)에서도 버튼은 보여 주고 안내를 띄운다
+  if (isIOS || isInApp) btn.hidden = false;
+  else setTimeout(function () { btn.hidden = false; }, 2500);
+})();
 </script>
 </body>
 </html>

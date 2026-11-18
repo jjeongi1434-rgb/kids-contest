@@ -1,5 +1,5 @@
 // 앱 화면은 캐시해 두고, 대회 데이터는 항상 새로 받아오되 오프라인이면 마지막 데이터를 보여준다.
-const CACHE = "kids-contest-v1";
+const CACHE = "kids-contest-v2";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png"];
 
 self.addEventListener("install", e => {

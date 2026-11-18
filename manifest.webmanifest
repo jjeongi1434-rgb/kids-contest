@@ -1,6 +1,6 @@
 {
-  "name": "어린이 대회 알림판",
-  "short_name": "대회알림판",
+  "name": "도전! 꿈나무",
+  "short_name": "도전! 꿈나무",
   "description": "초등 2·3학년이 나갈 수 있는 외부 대회 모음",
   "lang": "ko",
   "start_url": "./",

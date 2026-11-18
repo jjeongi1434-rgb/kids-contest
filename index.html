@@ -34,6 +34,7 @@
   --calm: #2e8a55; --calm-bg: #e0f5e8;
   --none: #6b7a90; --none-bg: #eef2f7;
   --done: #7a4fd6; --done-bg: #efe8ff;
+  --gold: #8a5a00; --gold-bg: #ffe9a8;
   --shadow: 0 1px 2px rgba(31, 60, 120, .06), 0 6px 18px rgba(31, 60, 120, .08);
   --font-display: "Jua", "Noto Sans KR", system-ui, sans-serif;
   --font-body: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
@@ -48,6 +49,7 @@
     --hot: #ff8a80; --hot-bg: #3b2124; --warm: #f5bb5c; --warm-bg: #3a2e18;
     --calm: #7fd6a2; --calm-bg: #1a3328; --none: #9fb0c6; --none-bg: #273347;
     --done: #b9a0ff; --done-bg: #2d2547;
+    --gold: #ffd36b; --gold-bg: #3d3115;
     --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 6px 18px rgba(0, 0, 0, .25);
     color-scheme: dark;
   }
@@ -135,6 +137,10 @@ a.main:hover .name { color: var(--accent); }
 }
 .bar button.on { background: var(--done); color: var(--paper); }
 .empty { background: var(--paper-soft); border-radius: 16px; padding: 22px 18px; color: var(--muted); text-align: center; font-size: 14px; }
+.prize { align-self: flex-start; font-size: 12.5px; border-radius: 8px; padding: 2px 9px; margin-top: 2px; overflow-wrap: anywhere; }
+.prize b { font-weight: 700; }
+.prize.cash { background: var(--gold-bg); color: var(--gold); }
+.prize.gift { background: var(--none-bg); color: var(--none); }
 .soon { font-size: 11.5px; color: var(--accent); font-weight: 700; margin-left: 6px; white-space: nowrap; }
 footer { color: var(--muted); font-size: 12.5px; text-align: center; padding-top: 6px; }
 
@@ -178,6 +184,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
       <button type="button" id="f-art" data-f="그림" aria-pressed="false">그림·포스터</button>
       <button type="button" id="f-write" data-f="글" aria-pressed="false">글짓기</button>
       <button type="button" id="f-sci" data-f="과학" aria-pressed="false">과학·발명</button>
+      <button type="button" id="f-prize" data-f="prize" aria-pressed="false">상금 있는 대회</button>
     </div>
 
     <section>
@@ -208,13 +215,20 @@ function start(data) {
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
   function id(c) { return c.name + "|" + (c.end || ""); }
   function isPast(c) { return !!c.end && parse(c.end) < today; }
-  function byField(c) { return filter === "all" || c.field === filter; }
+  function byField(c) {
+    if (filter === "prize") return !!(c.prize && c.prize.type === "상금");
+    return filter === "all" || c.field === filter;
+  }
   function byEnd(a, b) { if (!a.end) return 1; if (!b.end) return -1; return parse(a.end) - parse(b.end); }
 
   function card(c, chipCls, chipHtml, whenHtml, opts) {
     opts = opts || {};
     var org = c.org ? " · " + esc(c.org) : "";
     var note = c.note ? "<span class=\"meta\">" + esc(c.note) + "</span>" : "";
+    if (c.prize && c.prize.type) {
+      note = "<span class=\"prize " + (c.prize.type === "상금" ? "cash" : "gift") + "\"><b>" + esc(c.prize.type) + "</b>" +
+        (c.prize.text ? " " + esc(c.prize.text) : "") + "</span>" + note;
+    }
     var btn = "";
     if (opts.applyable) {
       var on = !!applied[id(c)];

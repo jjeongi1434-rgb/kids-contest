@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2f6fd6">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="대회 알림판">
+<title>어린이 대회 알림판</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* Layout: a classroom notice board — one narrow column of pinned slips, deadline chip on the left, dates on the right */
+:root {
+  --bg: #eef2f6;
+  --paper: #ffffff;
+  --ink: #1d2a3a;
+  --muted: #5f6f82;
+  --line: #d6dee7;
+  --accent: #2f6fd6;
+  --hot: #d6423a;
+  --hot-bg: #fde8e6;
+  --warm: #b86e00;
+  --warm-bg: #fdf1dc;
+  --calm: #2f7d4f;
+  --calm-bg: #e2f3e8;
+  --none-bg: #e7ebf0;
+  --font-display: "Jua", "Noto Sans KR", system-ui, sans-serif;
+  --font-body: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121820; --paper: #1b2430; --ink: #e6edf5; --muted: #9aabbd; --line: #2c3a4a;
+    --accent: #7aa8f5; --hot: #ff8077; --hot-bg: #3a1f1f; --warm: #f2b45a; --warm-bg: #3a2c16;
+    --calm: #79d39d; --calm-bg: #183126; --none-bg: #26313e; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121820; --paper: #1b2430; --ink: #e6edf5; --muted: #9aabbd; --line: #2c3a4a;
+  --accent: #7aa8f5; --hot: #ff8077; --hot-bg: #3a1f1f; --warm: #f2b45a; --warm-bg: #3a2c16;
+  --calm: #79d39d; --calm-bg: #183126; --none-bg: #26313e; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; padding-top: max(28px, env(safe-area-inset-top, 0px)) !important; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--font-body);
+  font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 48px;
+}
+.wrap { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+header { display: flex; flex-direction: column; gap: 6px; }
+h1 { font-family: var(--font-display); font-weight: 400; font-size: 30px; margin: 0; text-wrap: balance; }
+.sub { color: var(--muted); margin: 0; font-size: 14px; }
+h2 { font-family: var(--font-display); font-weight: 400; font-size: 21px; margin: 0; }
+section { display: flex; flex-direction: column; gap: 12px; }
+.sec-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.sec-head p { margin: 0; color: var(--muted); font-size: 13px; }
+
+.filters { display: flex; gap: 8px; flex-wrap: wrap; }
+.filters button {
+  font: inherit; font-size: 14px; padding: 6px 14px; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--paper); color: var(--ink);
+}
+.filters button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--paper); }
+.filters button:focus-visible, a.item:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.list { display: flex; flex-direction: column; gap: 8px; list-style: none; margin: 0; padding: 0; }
+a.item {
+  display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 14px; align-items: center;
+  background: var(--paper); border: 1px solid var(--line); border-radius: 10px;
+  padding: 12px 14px; color: inherit; text-decoration: none;
+  transition: border-color .15s, transform .15s;
+}
+a.item:hover { border-color: var(--accent); transform: translateY(-1px); }
+.chip {
+  font-family: var(--font-display); font-size: 17px; text-align: center; border-radius: 8px;
+  padding: 8px 0; font-variant-numeric: tabular-nums; line-height: 1.1;
+}
+.chip small { display: block; font-family: var(--font-body); font-size: 11px; margin-top: 2px; }
+.chip.hot { background: var(--hot-bg); color: var(--hot); }
+.chip.warm { background: var(--warm-bg); color: var(--warm); }
+.chip.calm { background: var(--calm-bg); color: var(--calm); }
+.chip.none { background: var(--none-bg); color: var(--muted); font-size: 14px; }
+.body { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.name { font-weight: 700; font-size: 16px; overflow-wrap: anywhere; }
+.meta { color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+.tag { display: inline-block; font-size: 12px; padding: 0 7px; border-radius: 4px; background: var(--none-bg); color: var(--ink); margin-right: 6px; }
+.date { text-align: right; font-variant-numeric: tabular-nums; font-size: 14px; white-space: nowrap; }
+.date .go { display: block; color: var(--accent); font-size: 13px; margin-top: 2px; }
+.empty { background: var(--paper); border: 1px dashed var(--line); border-radius: 10px; padding: 18px; color: var(--muted); text-align: center; }
+.soon { font-size: 12px; color: var(--accent); font-weight: 700; margin-left: 6px; }
+footer { color: var(--muted); font-size: 13px; }
+@media (max-width: 480px) {
+  a.item { grid-template-columns: 56px minmax(0, 1fr); }
+  .date { grid-column: 2; text-align: left; white-space: normal; }
+  .date .go { display: inline; margin-left: 8px; }
+}
+.content { display: flex; flex-direction: column; gap: 28px; }
+.lock { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 10px; max-width: 360px; }
+.lock label { font-weight: 700; }
+.lock-row { display: flex; gap: 8px; }
+.lock input { flex: 1; min-width: 0; font: inherit; font-size: 20px; letter-spacing: .3em; padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); }
+.lock button { font: inherit; padding: 8px 18px; border: 0; border-radius: 8px; background: var(--accent); color: var(--paper); cursor: pointer; }
+.lock input:focus-visible, .lock button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.lock-msg { margin: 0; min-height: 1.5em; font-size: 14px; color: var(--hot); }
+@media (prefers-reduced-motion: reduce) { a.item { transition: none; } a.item:hover { transform: none; } }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>어린이 대회 알림판</h1>
+    <p class="sub">초등 2·3학년이 나갈 수 있는 외부 대회예요. 누르면 대회 안내 사이트로 넘어가요.</p>
+  </header>
+
+  <form class="lock" id="lock" autocomplete="off">
+    <label for="pin">비밀번호를 넣어 주세요</label>
+    <div class="lock-row">
+      <input id="pin" type="password" inputmode="numeric" autocomplete="off" required>
+      <button type="submit" id="unlock">열기</button>
+    </div>
+    <p class="lock-msg" id="lock-msg" role="status"></p>
+  </form>
+
+  <div class="content" id="content" hidden>
+  <div class="filters" role="group" aria-label="분야 고르기" id="filters">
+    <button type="button" id="f-all" data-f="all" aria-pressed="true">전체</button>
+    <button type="button" id="f-art" data-f="그림" aria-pressed="false">그림·포스터</button>
+    <button type="button" id="f-write" data-f="글" aria-pressed="false">글짓기</button>
+    <button type="button" id="f-sci" data-f="과학" aria-pressed="false">과학·발명</button>
+  </div>
+
+  <section>
+    <div class="sec-head">
+      <h2>지금 응모할 수 있어요</h2>
+      <p>마감이 가까운 순서</p>
+    </div>
+    <ul class="list" id="open"></ul>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>해마다 열리는 대회</h2>
+      <p>이번 달부터 차례대로 · 미리 준비하기</p>
+    </div>
+    <ul class="list" id="yearly"></ul>
+  </section>
+
+  <footer id="foot"></footer>
+  </div>
+</div>
+
+<script>
+function start(data) {
+  data = data || { open: [], yearly: [] };
+  var today = new Date(); today.setHours(0, 0, 0, 0);
+  var thisMonth = today.getMonth() + 1;
+  var days = ["일", "월", "화", "수", "목", "금", "토"];
+  var filter = "all";
+
+  function parse(s) { var p = s.split("-"); return new Date(+p[0], +p[1] - 1, +p[2]); }
+  function md(d) { return (d.getMonth() + 1) + "/" + d.getDate() + "(" + days[d.getDay()] + ")"; }
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+
+  function item(chipCls, chipHtml, c, dateHtml, extra) {
+    var org = c.org ? " · " + esc(c.org) : "";
+    var note = c.note ? "<span class=\"meta\">" + esc(c.note) + "</span>" : "";
+    return "<li><a class=\"item\" href=\"" + esc(c.url) + "\" target=\"_blank\" rel=\"noopener\">" +
+      "<div class=\"chip " + chipCls + "\">" + chipHtml + "</div>" +
+      "<div class=\"body\"><span class=\"name\">" + esc(c.name) + (extra || "") + "</span>" +
+      "<span class=\"meta\"><span class=\"tag\">" + esc(c.field) + "</span>" + esc(c.target) + org + "</span>" + note + "</div>" +
+      "<div class=\"date\">" + dateHtml + "<span class=\"go\">사이트 열기 ↗</span></div></a></li>";
+  }
+
+  function renderOpen() {
+    var rows = data.open.filter(function (c) {
+      if (filter !== "all" && c.field !== filter) return false;
+      return !c.end || parse(c.end) >= today;
+    }).sort(function (a, b) {
+      if (!a.end) return 1; if (!b.end) return -1;
+      return parse(a.end) - parse(b.end);
+    });
+    var html = rows.map(function (c) {
+      if (!c.end) return item("none", "미정", c, esc(c.endText || "날짜 확인"));
+      var d = parse(c.end), left = Math.round((d - today) / 86400000);
+      var cls = left <= 7 ? "hot" : left <= 30 ? "warm" : "calm";
+      var chip = left === 0 ? "오늘<small>마감</small>" : "D-" + left + "<small>남음</small>";
+      return item(cls, chip, c, "~ " + md(d) + " 마감");
+    }).join("");
+    document.getElementById("open").innerHTML = html ||
+      "<li class=\"empty\">이 분야는 지금 응모할 수 있는 대회가 없어요. 아래 '해마다 열리는 대회'를 확인해 보세요.</li>";
+  }
+
+  function covers(c, m) { return c.from <= c.to ? (m >= c.from && m <= c.to) : (m >= c.from || m <= c.to); }
+  function renderYearly() {
+    var rows = data.yearly.filter(function (c) { return filter === "all" || c.field === filter; })
+      .map(function (c) {
+        var start = covers(c, thisMonth) ? 0 : (c.from - thisMonth + 12) % 12;
+        return { c: c, start: start };
+      }).sort(function (a, b) { return a.start - b.start; });
+    var html = rows.map(function (r) {
+      var c = r.c, label, cls;
+      if (r.start === 0) { label = "지금<small>접수 시기</small>"; cls = "warm"; }
+      else if (r.start === 1) { label = "다음 달"; cls = "calm"; }
+      else { label = c.from + "월"; cls = "none"; }
+      var soon = r.start <= 1 ? "<span class=\"soon\">" + (r.start === 0 ? "이번 달" : "곧 시작") + "</span>" : "";
+      return item(cls, label, c, esc(c.when), soon);
+    }).join("");
+    document.getElementById("yearly").innerHTML = html || "<li class=\"empty\">이 분야의 대회가 아직 없어요.</li>";
+  }
+
+  function render() { renderOpen(); renderYearly(); }
+
+  document.getElementById("filters").addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    filter = b.getAttribute("data-f");
+    Array.prototype.forEach.call(this.querySelectorAll("button"), function (x) {
+      x.setAttribute("aria-pressed", x === b ? "true" : "false");
+    });
+    render();
+  });
+
+  document.getElementById("foot").textContent =
+    "마지막 정리: " + (data.updated || "-") + " · 매월 1일에 새로 찾아 고쳐요. 날짜는 신청 전에 대회 공고에서 꼭 다시 확인하세요.";
+  render();
+}
+// 대회 목록은 비밀번호로 잠겨 있다 (PBKDF2 + AES-GCM). 맞는 비밀번호는 이 기기에만 기억한다.
+var KEY = "kids-contest-pin";
+var lockEl = document.getElementById("lock"), msgEl = document.getElementById("lock-msg"), pinEl = document.getElementById("pin");
+var encPromise = fetch("data/contests.enc.json?t=" + Date.now(), { cache: "no-store" }).then(function (r) {
+  if (!r.ok) throw new Error("load"); return r.json();
+});
+function b64(s) { return Uint8Array.from(atob(s), function (c) { return c.charCodeAt(0); }); }
+function decrypt(enc, pin) {
+  var subtle = crypto.subtle;
+  return subtle.importKey("raw", new TextEncoder().encode(pin), "PBKDF2", false, ["deriveKey"]).then(function (base) {
+    return subtle.deriveKey({ name: "PBKDF2", salt: b64(enc.salt), iterations: enc.iter, hash: "SHA-256" },
+      base, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
+  }).then(function (key) {
+    return subtle.decrypt({ name: "AES-GCM", iv: b64(enc.iv) }, key, b64(enc.ct));
+  }).then(function (buf) { return JSON.parse(new TextDecoder().decode(buf)); });
+}
+function tryOpen(pin, remember) {
+  msgEl.style.color = ""; msgEl.textContent = "여는 중…";
+  return encPromise.then(function (enc) { return decrypt(enc, pin); }).then(function (data) {
+    if (remember) { try { localStorage.setItem(KEY, pin); } catch (e) {} }
+    lockEl.hidden = true;
+    document.getElementById("content").hidden = false;
+    start(data);
+  }, function (err) {
+    if (err && err.message === "load") msgEl.textContent = "대회 목록을 불러오지 못했어요. 인터넷 연결을 확인하고 다시 열어 주세요.";
+    else { msgEl.textContent = remember ? "비밀번호가 맞지 않아요." : ""; try { localStorage.removeItem(KEY); } catch (e) {} }
+    pinEl.value = ""; pinEl.focus();
+  });
+}
+lockEl.addEventListener("submit", function (e) { e.preventDefault(); if (pinEl.value) tryOpen(pinEl.value, true); });
+var saved = null; try { saved = localStorage.getItem(KEY); } catch (e) {}
+if (saved) tryOpen(saved, false); else pinEl.focus();
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () {});
+</script>
+
+</body>
+</html>

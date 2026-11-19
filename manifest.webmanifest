@@ -1,8 +1,8 @@
 {
   "id": "./",
-  "name": "도전! 꿈나무",
-  "short_name": "도전! 꿈나무",
-  "description": "초등 2·3학년이 나갈 수 있는 외부 대회 모음",
+  "name": "꼬마 챔피언",
+  "short_name": "꼬마 챔피언",
+  "description": "초등 2~4학년이 나갈 수 있는 외부 대회 모음",
   "lang": "ko",
   "start_url": "./",
   "scope": "./",

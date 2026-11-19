@@ -8,8 +8,8 @@
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="도전! 꿈나무">
-<title>도전! 꿈나무</title>
+<meta name="apple-mobile-web-app-title" content="꼬마 챔피언">
+<title>꼬마 챔피언</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700&display=swap">
@@ -152,6 +152,12 @@ a.main:hover .name { color: var(--accent); }
 .empty { background: var(--paper-soft); border-radius: 16px; padding: 22px 18px; color: var(--muted); text-align: center; font-size: 14px; }
 .prize { align-self: flex-start; font-size: 12.5px; border-radius: 8px; padding: 2px 9px; margin-top: 2px; overflow-wrap: anywhere; }
 .prize b { font-weight: 700; }
+.odds { font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere; }
+.odds b { font-weight: 700; }
+.odds.high b { color: var(--calm); }
+.odds.mid b { color: var(--warm); }
+.odds.low b { color: var(--none); }
+.tag.t2 { background: var(--calm-bg); color: var(--calm); }
 .prize.cash { background: var(--gold-bg); color: var(--gold); }
 .prize.gift { background: var(--none-bg); color: var(--none); }
 .soon { font-size: 11.5px; color: var(--accent); font-weight: 700; margin-left: 6px; white-space: nowrap; }
@@ -170,8 +176,8 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
   <header>
     <img src="icon-192.png" alt="">
     <div>
-      <h1>도전! 꿈나무</h1>
-      <p class="sub">초등 2·3학년이 나갈 수 있는 외부 대회</p>
+      <h1>꼬마 챔피언</h1>
+      <p class="sub">초등 2~4학년이 나갈 수 있는 외부 대회</p>
     </div>
     <button type="button" class="install" id="install" hidden>앱 설치</button>
   </header>
@@ -203,8 +209,10 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
       <button type="button" id="f-all" data-f="all" aria-pressed="true">전체</button>
       <button type="button" id="f-art" data-f="그림" aria-pressed="false">그림·포스터</button>
       <button type="button" id="f-write" data-f="글" aria-pressed="false">글짓기</button>
-      <button type="button" id="f-sci" data-f="과학" aria-pressed="false">과학·발명</button>
+      <button type="button" id="f-sci" data-f="과학" aria-pressed="false">과학·수학</button>
+      <button type="button" id="f-env" data-f="env" aria-pressed="false">환경</button>
       <button type="button" id="f-prize" data-f="prize" aria-pressed="false">상금 있는 대회</button>
+      <button type="button" id="f-odds" data-f="odds" aria-pressed="false">상 받기 좋은 대회</button>
     </div>
 
     <section>
@@ -240,6 +248,9 @@ function start(data) {
   function isPast(c) { return !!c.end && parse(c.end) < today; }
   function byField(c) {
     if (filter === "prize") return !!(c.prize && c.prize.type === "상금");
+    if (filter === "odds") return c.odds === "높음";
+    if (filter === "env") return (c.tags || []).indexOf("환경") >= 0;
+    if (filter === "과학") return c.field === "과학" || c.field === "수학" || (c.tags || []).some(function (t) { return t === "과학" || t === "수학" || t === "AI"; });
     return filter === "all" || c.field === filter;
   }
   function byEnd(a, b) { if (!a.end) return 1; if (!b.end) return -1; return parse(a.end) - parse(b.end); }
@@ -252,6 +263,12 @@ function start(data) {
       note = "<span class=\"prize " + (c.prize.type === "상금" ? "cash" : "gift") + "\"><b>" + esc(c.prize.type) + "</b>" +
         (c.prize.text ? " " + esc(c.prize.text) : "") + "</span>" + note;
     }
+    if (c.odds) {
+      var oc = c.odds === "높음" ? "high" : c.odds === "낮음" ? "low" : "mid";
+      note += "<span class=\"odds " + oc + "\"><b>수상 가능성 " + esc(c.odds) + "</b>" + (c.oddsReason ? " · " + esc(c.oddsReason) : "") + "</span>";
+    }
+    var tags = (c.tags || []).filter(function (t) { return t !== c.field; }).map(function (t) { return "<span class=\"tag t2\">" + esc(t) + "</span>"; }).join("");
+    var fee = c.fee ? " · " + esc(c.fee) : "";
     var btn = "";
     if (opts.applyable) {
       var on = !!applied[id(c)];
@@ -267,7 +284,7 @@ function start(data) {
       "<div class=\"chip " + chipCls + "\">" + chipHtml + "</div>" +
       "<div class=\"body\"><span class=\"name\">" + esc(c.name) + (opts.extra || "") + "</span>" +
       "<span class=\"when\">" + whenHtml + "</span>" +
-      "<span class=\"meta\"><span class=\"tag\">" + esc(c.field) + "</span>" + esc(c.target) + org + "</span>" + note + "</div></a>" +
+      "<span class=\"meta\"><span class=\"tag\">" + esc(c.field) + "</span>" + tags + esc(c.target) + org + fee + "</span>" + note + "</div></a>" +
       "<div class=\"bar\"><a class=\"go\" href=\"" + esc(c.url) + "\" target=\"_blank\" rel=\"noopener\">사이트 열기 ↗</a><span class=\"acts\">" + btn + "</span></div></li>";
   }
 
